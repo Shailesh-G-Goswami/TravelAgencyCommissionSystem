@@ -1,0 +1,224 @@
+﻿@page
+@model TravelAgencyCommissionSystem.Web.Pages.BookingDetailsModel
+
+@{
+    ViewData["Title"] = "Booking Details";
+}
+
+<div class="container mt-4">
+
+    <h2>Booking Details</h2>
+
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <input type="number"
+                   id="bookingId"
+                   class="form-control"
+                   placeholder="Enter Booking ID" />
+        </div>
+
+        <div class="col-md-2">
+            <button id="loadBooking"
+                    class="btn btn-primary">
+
+                Load Booking
+            </button>
+        </div>
+    </div>
+
+    <div id="loadingIndicator"
+         class="alert alert-info"
+         style="display:none;">
+        Loading...
+    </div>
+
+    <div id="errorMessage"
+         class="alert alert-danger"
+         style="display:none;">
+    </div>
+
+    <div id="bookingContainer"
+         style="display:none;">
+
+        <table class="table table-bordered">
+            <tr>
+                <th>Booking ID</th>
+                <td id="booking-id-value"></td>
+            </tr>
+
+            <tr>
+                <th>Agent</th>
+                <td id="agent-name"></td>
+            </tr>
+
+            <tr>
+                <th>Ticket Amount</th>
+                <td id="ticket-amount"></td>
+            </tr>
+
+            <tr>
+                <th>Status</th>
+                <td id="booking-status"></td>
+            </tr>
+
+            <tr>
+                <th>Reserved Commission</th>
+                <td id="reserved-amount"></td>
+            </tr>
+
+            <tr>
+                <th>Rate Applied</th>
+                <td id="rate-applied"></td>
+            </tr>
+        </table>
+
+        <button id="reserveButton"
+                class="btn btn-success">
+
+            Reserve Commission
+        </button>
+
+        <button id="cancelButton"
+                class="btn btn-danger">
+
+            Cancel Booking
+        </button>
+
+    </div>
+
+</div>
+
+@section Scripts
+{
+    <script>
+
+        let currentBookingId = null;
+
+        $(document).ready(function () {
+
+            $("#loadBooking").click(loadBooking);
+
+            $("#reserveButton").click(reserveCommission);
+
+            $("#cancelButton").click(cancelBooking);
+
+        });
+
+        function showError(message)
+        {
+            $("#errorMessage")
+                .text(message)
+                .show();
+        }
+
+        function clearError()
+        {
+            $("#errorMessage").hide();
+        }
+
+        function loadBooking()
+        {
+            clearError();
+
+            currentBookingId = $("#bookingId").val();
+
+            if (!currentBookingId)
+            {
+                showError("Please enter a booking ID.");
+                return;
+            }
+
+            $("#loadingIndicator").show();
+
+            $.get(`/api/bookings/${currentBookingId}`)
+                .done(function (data)
+                {
+                    $("#booking-id-value").text(data.id);
+                    $("#agent-name").text(data.agentName);
+                    $("#ticket-amount").text(data.ticketAmount);
+                    $("#booking-status").text(data.status);
+
+                    $("#reserved-amount")
+                        .text(data.reservedAmount ?? "N/A");
+
+                    $("#rate-applied")
+                        .text(data.rateApplied ?? "N/A");
+
+                    $("#bookingContainer").show();
+                })
+                .fail(function (xhr)
+                {
+                    let message =
+                        xhr.responseJSON?.message
+                        || "Failed to load booking.";
+
+                    showError(message);
+                })
+                .always(function ()
+                {
+                    $("#loadingIndicator").hide();
+                });
+        }
+
+        function reserveCommission()
+        {
+            if (!currentBookingId)
+                return;
+
+            $("#reserveButton").prop("disabled", true);
+
+            $.post(
+                `/api/bookings/${currentBookingId}/reserve-commission`)
+                .done(function ()
+                {
+                    alert("Commission reserved successfully.");
+
+                    loadBooking();
+                })
+                .fail(function (xhr)
+                {
+                    let message =
+                        xhr.responseJSON?.message
+                        || "Sales data has changed. Please refresh and try again.";
+
+                    showError(message);
+                })
+                .always(function ()
+                {
+                    $("#reserveButton").prop("disabled", false);
+                });
+        }
+
+        function cancelBooking()
+        {
+            if (!currentBookingId)
+                return;
+
+            $("#cancelButton").prop("disabled", true);
+
+            $.ajax({
+                url: `/api/bookings/${currentBookingId}/cancel`,
+                type: "PUT"
+            })
+            .done(function ()
+            {
+                alert("Booking cancelled successfully.");
+
+                loadBooking();
+            })
+            .fail(function (xhr)
+            {
+                let message =
+                    xhr.responseJSON?.message
+                    || "Unable to cancel booking.";
+
+                showError(message);
+            })
+            .always(function ()
+            {
+                $("#cancelButton").prop("disabled", false);
+            });
+        }
+
+    </script>
+}

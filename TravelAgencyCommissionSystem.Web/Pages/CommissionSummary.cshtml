@@ -1,0 +1,216 @@
+﻿@page
+@model TravelAgencyCommissionSystem.Web.Pages.CommissionSummaryModel
+@{
+    ViewData["Title"] = "Commission Summary";
+}
+
+
+<div class="container mt-4">
+
+    <h2>Commission Summary</h2>
+
+    <div class="row mb-3">
+
+        <div class="col-md-3">
+            <input type="month"
+                   id="monthSelector"
+                   class="form-control" />
+        </div>
+
+        <div class="col-md-2">
+            <button id="loadButton"
+                    class="btn btn-primary">
+                Load
+            </button>
+        </div>
+
+    </div>
+
+    <div id="loadingIndicator"
+         style="display:none;"
+         class="alert alert-info">
+
+        Loading...
+
+    </div>
+
+    <div id="emptyMessage"
+         class="alert alert-warning"
+         style="display:none;">
+
+        No bookings found for the selected month.
+
+    </div>
+
+    <table class="table table-bordered"
+           id="summaryTable">
+
+        <thead>
+
+            <tr>
+                <th data-sort="name">Agent</th>
+                <th data-sort="sales">Confirmed Sales</th>
+                <th data-sort="commission">Reserved Commission</th>
+                <th>Most Frequent Tier</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+        </tbody>
+
+    </table>
+
+    <div class="mt-3">
+
+        <button id="previousPage"
+                class="btn btn-secondary">
+
+            Previous
+
+        </button>
+
+        <span id="pageInfo"></span>
+
+        <button id="nextPage"
+                class="btn btn-secondary">
+
+            Next
+
+        </button>
+
+    </div>
+
+</div>
+
+@section Scripts
+{
+    <script>
+
+        let currentPage = 1;
+        let pageSize = 5;
+        let sortBy = "name";
+        let descending = false;
+
+        $(document).ready(function () {
+
+            let today = new Date();
+
+            let month =
+                today.getFullYear() +
+                "-" +
+                String(today.getMonth() + 1)
+                    .padStart(2, "0");
+
+            $("#monthSelector").val(month);
+
+            loadData();
+
+            $("#loadButton").click(function () {
+
+                currentPage = 1;
+
+                loadData();
+
+            });
+
+            $("th[data-sort]").click(function () {
+
+                let selectedSort =
+                    $(this).data("sort");
+
+                if (sortBy === selectedSort)
+                {
+                    descending = !descending;
+                }
+                else
+                {
+                    sortBy = selectedSort;
+                    descending = false;
+                }
+
+                loadData();
+
+            });
+
+            $("#previousPage").click(function () {
+
+                if (currentPage > 1)
+                {
+                    currentPage--;
+
+                    loadData();
+                }
+
+            });
+
+            $("#nextPage").click(function () {
+
+                currentPage++;
+
+                loadData();
+
+            });
+
+        });
+
+        function loadData()
+        {
+            $("#loadingIndicator").show();
+
+            $("#emptyMessage").hide();
+
+            $.get(
+                "/api/reports/commission-summary",
+                {
+                    month:
+                        $("#monthSelector").val(),
+
+                    page:
+                        currentPage,
+
+                    pageSize:
+                        pageSize,
+
+                    sortBy:
+                        sortBy,
+
+                    descending:
+                        descending
+                },
+                function (response)
+                {
+                    $("#loadingIndicator").hide();
+
+                    let tbody =
+                        $("#summaryTable tbody");
+
+                    tbody.empty();
+
+                    if (response.items.length === 0)
+                    {
+                        $("#emptyMessage").show();
+
+                        return;
+                    }
+
+                    response.items.forEach(item =>
+                    {
+                        tbody.append(`
+                            <tr>
+                                <td>${item.agentName}</td>
+                                <td>${item.totalConfirmedSales}</td>
+                                <td>${item.totalReservedCommission}</td>
+                                <td>${item.mostFrequentTier}</td>
+                            </tr>
+                        `);
+                    });
+
+                    $("#pageInfo").text(
+                        `Page ${response.page} of ${response.totalPages}`
+                    );
+                });
+        }
+
+    </script>
+}

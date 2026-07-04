@@ -1,0 +1,45 @@
+@HostAddress = https://localhost:7084
+
+### Get a reservation (should fail if already reserved)
+POST {{HostAddress}}/api/bookings/1/reserve-commission
+Accept: application/json
+
+###
+
+### Reserve another booking
+POST {{HostAddress}}/api/bookings/2/reserve-commission
+Accept: application/json
+
+###
+
+### Try duplicate reservation (expect 409)
+POST {{HostAddress}}/api/bookings/2/reserve-commission
+Accept: application/json
+
+###
+
+### Cancel a booking
+PUT {{HostAddress}}/api/bookings/2/cancel
+Accept: application/json
+
+###
+
+### Cancel again (expect 409)
+PUT {{HostAddress}}/api/bookings/2/cancel
+Accept: application/json
+
+###
+
+### Try reserving a cancelled booking (expect 409)
+POST {{HostAddress}}/api/bookings/2/reserve-commission
+Accept: application/json
+
+
+###
+GET {{HostAddress}}/api/reports/commission-summary?month=2026-07&page=1&pageSize=10&sortBy=name&descending=false
+Accept: application/json
+
+
+###
+GET {{HostAddress}}/api/bookings/1
+Accept: application/json

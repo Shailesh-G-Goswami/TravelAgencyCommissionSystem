@@ -1,1 +1,4 @@
-<Solution />
+<Solution>
+  <Project Path="TravelAgencyCommissionSystem.Tests/TravelAgencyCommissionSystem.Tests.csproj" />
+  <Project Path="TravelAgencyCommissionSystem.Web/TravelAgencyCommissionSystem.Web.csproj" />
+</Solution>

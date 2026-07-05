@@ -12,5 +12,6 @@ namespace TravelAgencyCommissionSystem.Web.Services.Interfaces
         Task<decimal> GetMonthlyConfirmedSalesAsync(int agentId,DateTime bookingDate);
 
         Task<BookingDetailsDto> GetBookingDetailsAsync(int bookingId);
+
     }
 }

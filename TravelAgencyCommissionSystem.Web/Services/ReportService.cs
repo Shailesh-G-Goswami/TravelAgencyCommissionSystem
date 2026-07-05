@@ -45,8 +45,39 @@ namespace TravelAgencyCommissionSystem.Web.Services
 
             var endDate = startDate.AddMonths(1);
 
+            //var query =
+            //    _context.Agents
+            //        .Select(agent => new CommissionSummaryDto
+            //        {
+            //            AgentId = agent.Id,
+            //            AgentName = agent.Name,
+
+            //            TotalConfirmedSales =
+            //                agent.Bookings
+            //                    .Where(b =>
+            //                        b.Status == BookingStatus.Confirmed &&
+            //                        b.BookingDate >= startDate &&
+            //                        b.BookingDate < endDate)
+            //                    .Sum(b => (decimal?)b.TicketAmount) ?? 0,
+
+            //            TotalReservedCommission =
+            //                agent.Bookings
+            //                    .Where(b =>
+            //                        b.BookingDate >= startDate &&
+            //                        b.BookingDate < endDate &&
+            //                        b.CommissionReservation != null &&
+            //                        !b.CommissionReservation.IsVoided)
+            //                    .Sum(b => (decimal?)b.CommissionReservation!.ReservedAmount) ?? 0,
+
+            //            MostFrequentTier = null
+            //        });
+
             var query =
                 _context.Agents
+                    .Where(agent =>
+                        agent.Bookings.Any(b =>
+                            b.BookingDate >= startDate &&
+                            b.BookingDate < endDate))
                     .Select(agent => new CommissionSummaryDto
                     {
                         AgentId = agent.Id,
@@ -67,9 +98,10 @@ namespace TravelAgencyCommissionSystem.Web.Services
                                     b.BookingDate < endDate &&
                                     b.CommissionReservation != null &&
                                     !b.CommissionReservation.IsVoided)
-                                .Sum(b => (decimal?)b.CommissionReservation!.ReservedAmount) ?? 0,
+                                .Sum(b =>
+                                    (decimal?)b.CommissionReservation!.ReservedAmount) ?? 0,
 
-                        MostFrequentTier = null
+                        MostFrequentTier = "N/A"
                     });
 
             query = sortBy?.ToLower() switch

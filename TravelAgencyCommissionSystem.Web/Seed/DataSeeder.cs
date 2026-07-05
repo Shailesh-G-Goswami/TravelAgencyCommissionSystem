@@ -1,4 +1,5 @@
-﻿using TravelAgencyCommissionSystem.Web.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using TravelAgencyCommissionSystem.Web.Data;
 using TravelAgencyCommissionSystem.Web.Models;
 using TravelAgencyCommissionSystem.Web.Models.Enums;
 
@@ -9,22 +10,25 @@ namespace TravelAgencyCommissionSystem.Web.Seed
         public static async Task SeedAsync(ApplicationDbContext context)
         {
             await SeedCommissionTiersAsync(context);
-            await SeedAgentsAsync(context);
-            await SeedBookingsAsync(context);
+            await context.SaveChangesAsync();
 
+            await SeedAgentsAsync(context);
+            await context.SaveChangesAsync();
+
+            await SeedBookingsAsync(context);
             await context.SaveChangesAsync();
         }
 
         private static async Task SeedCommissionTiersAsync(ApplicationDbContext context)
         {
-            if(context.CommissionTiers.Any())
+            if(await context.CommissionTiers.AnyAsync())
             {
                 return;
             }
 
             var tiers = new List<CommissionTier>
             {
-                                new()
+                new()
                 {
                     MinMonthlySales = 0,
                     MaxMonthlySales = 50000,
@@ -49,7 +53,7 @@ namespace TravelAgencyCommissionSystem.Web.Seed
 
         private static async Task SeedAgentsAsync(ApplicationDbContext context)
         {
-            if (context.Agents.Any())
+            if (await context.Agents.AnyAsync())
             {
                 return;
             }
@@ -68,18 +72,23 @@ namespace TravelAgencyCommissionSystem.Web.Seed
 
         private static async Task SeedBookingsAsync(ApplicationDbContext context)
         {
-            if (context.Bookings.Any())
+            if (await context.Bookings.AnyAsync())
             {
                 return;
             }
 
-            var agents = context.Agents.ToList();
+            var agents = await context.Agents.ToListAsync();
 
-            var john = agents.First(a => a.Name == "John Smith");
-            var sarah = agents.First(a => a.Name == "Sarah Johnson");
-            var michael = agents.First(a => a.Name == "Michael Brown");
-            var emma = agents.First(a => a.Name == "Emma Wilson");
-            var david = agents.First(a => a.Name == "David Lee");
+            var john = agents.First(a => a.Name == "John Smith") 
+                ?? throw new Exception("John Smith not found in seed data.");
+            var sarah = agents.First(a => a.Name == "Sarah Johnson") 
+                ?? throw new Exception("Sarah Johnson not found in seed data.");
+            var michael = agents.First(a => a.Name == "Michael Brown") 
+                ?? throw new Exception("Michael Brown not found in seed data.");
+            var emma = agents.First(a => a.Name == "Emma Wilson") 
+                ?? throw new Exception("Emma Wilson not found in seed data.");
+            var david = agents.First(a => a.Name == "David Lee") 
+                ?? throw new Exception("David Lee not found in seed data.");
 
             var bookings = new List<Booking>
     {

@@ -17,13 +17,6 @@
                    class="form-control" />
         </div>
 
-        <div class="col-md-2">
-            <button id="loadButton"
-                    class="btn btn-primary">
-                Load
-            </button>
-        </div>
-
     </div>
 
     <div id="loadingIndicator"
@@ -46,14 +39,26 @@
            id="summaryTable">
 
         <thead>
-
             <tr>
-                <th data-sort="name">Agent</th>
-                <th data-sort="sales">Confirmed Sales</th>
-                <th data-sort="commission">Reserved Commission</th>
-                <th>Most Frequent Tier</th>
-            </tr>
+                <th data-sort="name">
+                    Agent
+                    <span class="sort-icon"></span>
+                </th>
 
+                <th data-sort="sales">
+                    Confirmed Sales
+                    <span class="sort-icon"></span>
+                </th>
+
+                <th data-sort="commission">
+                    Reserved Commission
+                    <span class="sort-icon"></span>
+                </th>
+
+                <th>
+                    Most Frequent Tier
+                </th>
+            </tr>
         </thead>
 
         <tbody>
@@ -104,9 +109,11 @@
 
             $("#monthSelector").val(month);
 
+            updateSortIcons();
+
             loadData();
 
-            $("#loadButton").click(function () {
+            $("#monthSelector").change(function () {
 
                 currentPage = 1;
 
@@ -129,22 +136,31 @@
                     descending = false;
                 }
 
+                updateSortIcons();
+
                 loadData();
 
             });
 
             $("#previousPage").click(function () {
 
-                if (currentPage > 1)
+                if ($(this).prop("disabled"))
                 {
-                    currentPage--;
-
-                    loadData();
+                    return;
                 }
+
+                currentPage--;
+
+                loadData();
 
             });
 
             $("#nextPage").click(function () {
+
+                if ($(this).prop("disabled"))
+                {
+                    return;
+                }
 
                 currentPage++;
 
@@ -189,6 +205,16 @@
 
                     if (response.items.length === 0)
                     {
+                        $("#summaryTable tbody").empty();
+
+                        $("#summaryTable").hide();
+
+                        $("#pageInfo").text("");
+
+                        $("#previousPage").prop("disabled", true);
+
+                        $("#nextPage").prop("disabled", true);
+
                         $("#emptyMessage").show();
 
                         return;
@@ -209,7 +235,33 @@
                     $("#pageInfo").text(
                         `Page ${response.page} of ${response.totalPages}`
                     );
+
+                    $("#summaryTable").show();
+
+                    $("#previousPage").prop(
+                        "disabled",
+                        response.page <= 1
+                    );
+
+                    $("#nextPage").prop(
+                        "disabled",
+                        response.page >= response.totalPages
+                    );
+
                 });
+        }
+
+        
+        function updateSortIcons()
+        {
+            $(".sort-icon").text("");
+
+            let currentHeader =
+                $(`th[data-sort='${sortBy}'] .sort-icon`);
+
+            currentHeader.text(
+                descending ? " ↓" : " ↑"
+            );
         }
 
     </script>

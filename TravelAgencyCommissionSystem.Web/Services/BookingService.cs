@@ -63,8 +63,7 @@ namespace TravelAgencyCommissionSystem.Web.Services
             var monthlySales =
                 await GetMonthlyConfirmedSalesAsync(
                     booking.AgentId,
-                    year,
-                    month);
+                    booking.BookingDate);
 
             // Include current booking if it is confirmed
             if (booking.Status == BookingStatus.Confirmed)
@@ -134,18 +133,17 @@ namespace TravelAgencyCommissionSystem.Web.Services
 
         public async Task<decimal> GetMonthlyConfirmedSalesAsync(
             int agentId,
-            int year,
-            int month)
+            DateTime bookingDate)
         {
-            var startDate = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
-            var endDate = startDate.AddMonths(1);
+            var startDate =
+                new DateTime(bookingDate.Year,bookingDate.Month,1,0,0,0,DateTimeKind.Utc);
 
             return await _context.Bookings
                 .Where(x =>
                     x.AgentId == agentId &&
                     x.Status == BookingStatus.Confirmed &&
-                    x.BookingDate == startDate &&
-                    x.BookingDate == endDate)
+                    x.BookingDate >= startDate &&
+                    x.BookingDate < bookingDate)
                 .SumAsync(x => (decimal?)x.TicketAmount) ?? 0m;
         }
 
